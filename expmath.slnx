@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="expmath/expmath.vcxproj" Id="f031b214-1069-495a-b2e7-1b361e01958e" />
+</Solution>
