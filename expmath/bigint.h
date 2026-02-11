@@ -53,7 +53,7 @@ BigInt *circ_rsh_bi(const BigInt *, const BigInt *);
 
 // Etc-method
 retcode is_signed_bi(const BigInt *);
-retcode set_bi_calctemp_with_number(uint64_t);
+retcode set_bi_calctemp_with_number(int64_t);
 
 // TypeChange-method
 char *bi_to_str(const BigInt *);

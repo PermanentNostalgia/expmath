@@ -344,7 +344,7 @@ char *bi_to_str(const BigInt *bi) {
 	return OUTPUT_STR_TEMP;
 }
 
-retcode set_bi_calctemp_with_number(uint64_t n) {
+retcode set_bi_calctemp_with_number(int64_t n) {
 	flush_bi_calctemp();
 
 	BigInt *bi = new_bi(n);
