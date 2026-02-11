@@ -305,6 +305,11 @@ retcode convert_sign_bi(BigInt *x) {
 }
 
 retcode is_signed_bi(const BigInt *bi) {
+	if(bi==NULL) {
+		if(CALC_TEMP==NULL) return -1;
+		bi = CALC_TEMP;
+	}
+
 	if(bi->mem[bi->field-1]>=128)
 		return 1;
 	else
