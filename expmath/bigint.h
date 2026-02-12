@@ -40,8 +40,11 @@ retcode is_smaller_same_bi(const BigInt *, const BigInt *);
 
 // BitwiseCompare-Operator
 BigInt *and_bi(const BigInt *, const BigInt *);
+BigInt *and_bi_with_assign(BigInt *, const BigInt *);
 BigInt *or_bi(const BigInt *, const BigInt *);
+BigInt *or_bi_with_assign(BigInt *, const BigInt *);
 BigInt *xor_bi(const BigInt *, const BigInt *);
+BigInt *xor_bi_with_assign(BigInt *, const BigInt *);
 BigInt *not_bi(const BigInt *);
 
 // BitwiseShift-Operator
@@ -73,7 +76,7 @@ static BigInt *_mul_bi(const BigInt *, const BigInt *);
 
 static retcode _compare_operate(const BigInt *, const BigInt *);
 
-static BigInt *_bitwise_compare_operate(const BigInt *, const BigInt *, uint8_t(*)(uint8_t,uint8_t));
+static BigInt *_bitwise_compare_operate(const BigInt *, const BigInt *, uint8_t(*)(uint8_t,uint8_t), BigInt *);
 static uint8_t _bitwise_and(uint8_t, uint8_t);
 static uint8_t _bitwise_or(uint8_t, uint8_t);
 static uint8_t _bitwise_xor(uint8_t, uint8_t);

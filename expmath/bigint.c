@@ -246,15 +246,27 @@ retcode is_smaller_same_bi(const BigInt *base, const BigInt *counter) {
 }
 
 BigInt *and_bi(const BigInt *x, const BigInt *y) {
-	return _bitwise_compare_operate(x, y, _bitwise_and);
+	return _bitwise_compare_operate(x, y, _bitwise_and, NULL);
+}
+
+BigInt *and_bi_with_assign(BigInt *x, const BigInt *y) {
+	return _bitwise_compare_operate(x, y, _bitwise_and, x);
 }
 
 BigInt *or_bi(const BigInt *x, const BigInt *y) {
-	return _bitwise_compare_operate(x, y, _bitwise_or);
+	return _bitwise_compare_operate(x, y, _bitwise_or, NULL);
+}
+
+BigInt *or_bi_with_assign(BigInt *x, const BigInt *y) {
+	return _bitwise_compare_operate(x, y, _bitwise_or, x);
 }
 
 BigInt *xor_bi(const BigInt *x, const BigInt *y) {
-	return _bitwise_compare_operate(x, y, _bitwise_xor);
+	return _bitwise_compare_operate(x, y, _bitwise_xor, NULL);
+}
+
+BigInt *xor_bi_with_assign(BigInt *x, const BigInt *y) {
+	return _bitwise_compare_operate(x, y, _bitwise_xor, x);
 }
 
 retcode convert_sign_bi(BigInt *x) {
@@ -655,8 +667,17 @@ static retcode _compare_operate(const BigInt *x, const BigInt *y) {
 	return 0;
 }
 
-static BigInt *_bitwise_compare_operate(const BigInt *x, const BigInt *y, uint8_t (*operator)(uint8_t,uint8_t)) {
+static BigInt *_bitwise_compare_operate(const BigInt *x, const BigInt *y, uint8_t (*operator)(uint8_t,uint8_t), BigInt *out) {
 	if(_set_oprand(&x, &y)==-1) return NULL;
+
+	if(out==NULL) {
+		if(CALC_TEMP==NULL) {
+			CALC_TEMP = (BigInt *)malloc(sizeof(BigInt));
+			if(CALC_TEMP==NULL) return NULL;
+			CALC_TEMP->mem = NULL;
+		}
+		out = CALC_TEMP;
+	}
 
 	uint64_t n_field;
 	uint8_t *n_mem, counter_pad;
@@ -692,23 +713,27 @@ static BigInt *_bitwise_compare_operate(const BigInt *x, const BigInt *y, uint8_
 		}
 	}
 
-	if(CALC_TEMP==NULL) {
-		CALC_TEMP = (BigInt *)malloc(sizeof(BigInt));
-		if(CALC_TEMP==NULL) {
-			return NULL;
-		}
-	} else {
-		free(CALC_TEMP->mem);
-	}
-
-	CALC_TEMP->mem = n_mem;
-	CALC_TEMP->field = n_field;
-
-	if(_optimize_bytes(CALC_TEMP)==-1) {
+	BigInt *res = (BigInt *)malloc(sizeof(BigInt));
+	if(res==NULL) {
+		free(n_mem);
 		return NULL;
 	}
 
-	return CALC_TEMP;
+	res->mem = n_mem;
+	res->field = n_field;
+
+	if(_optimize_bytes(res)==-1) {
+		free(n_mem);
+		free(res);
+		return NULL;
+	}
+
+	if(out->mem!=NULL) free(out->mem);
+	out->mem = res->mem;
+	out->field = res->field;
+	free(res);
+
+	return out;
 }
 
 static uint8_t _bitwise_and(uint8_t x, uint8_t y) {
