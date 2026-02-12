@@ -5,7 +5,18 @@
 #include "bigint.h"
 
 int main(void) {
-	BigInt *bi = new_bi(17);
-	printf("bi in binary: %s", bi_to_str(bi));
+	BigInt *a = new_bi(18), *b = new_bi(17), *res;
+	res = and_bi_with_assign(a, b);
+
+	_print_bi_spac(res);
+
+	or_bi_with_assign(a, b);
+
+	_print_bi_spac(res);
+
+	xor_bi_with_assign(a, b);
+
+	_print_bi_spac(res);
+
 	return 0;
 }
