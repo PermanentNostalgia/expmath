@@ -62,7 +62,7 @@ CALC_TEMP는 기본적으로 널 포인터를 가리키며, 최초로 연산 함
 new_bi, new_bi_with_str을 제외한 모든 함수는 인수로 넘어온 NULL(0)을 CALC_TEMP가 가리키는 BigInt 구조체로 생각합니다.
 
 > [!CAUTION]
-> BigInt 구조체의 주소를 반환하는 연산 함수들은 CALC_TEMP가 가리키는 구조체에 결과값을 저장하고 그 구조체의 주소를 반환하는 구조이기 때문에
+> 이름에 "_with_assign"이 붙지 않은 연산 함수들은 CALC_TEMP가 가리키는 구조체에 결과값을 저장하고 그 구조체의 주소를 반환하는 구조이기 때문에
 > 해당 함수들이 오류 없이 연산을 수행했고 flush_calctemp 함수가 실행된 적 없는 한 CALC_TEMP에 저장된 동일한 메모리 주소를 반환합니다.
 > 해당 함수들을 실행하면 CALC_TEMP가 가리키는 BigInt 구조체의 내용이 변경되기 때문에 연산의 결과를 추후에 다시 사용해야된다면 copy_calctemp 같은 함수로 따로 저장해야합니다.
 
@@ -86,7 +86,7 @@ new_bi, new_bi_with_str을 제외한 모든 함수는 인수로 넘어온 NULL(0
 + BigInt *sub_bi(const BigInt *, const BigInt *);
 + BigInt *mul_bi(const BigInt *, const BigInt *);
 
-애래의 함수들은 CALC_TEMP에 결과값을 저장하지 않고 첫번째 인수가 가리키는 BigInt 구조체에 결과를 저장합니다.
+애래의 함수들은 CALC_TEMP에 결과값을 저장하지 않고 첫번째 인수가 가리키는 BigInt 구조체에 결과를 저장하고 그 주소를 반환합니다.
 + BigInt *sum_bi_with_assign(BigInt *, const BigInt *);
 + BigInt *sub_bi_with_assign(BigInt *, const BigInt *);
 + BigInt *mul_bi_with_assign(BigInt *, const BigInt *);
@@ -124,8 +124,13 @@ if(is_same_bi(two, hundred)) printf("yes"); // 실행되지 않음
 
 아래의 함수들은 CALC_TEMP가 가리키는 BigInt 구조체에 결과값을 임시 저장하고 그 주소를 반환합니다.
 + BigInt *and_bi(const BigInt *, const BigInt *);
-+ BigInt *and_bi(const BigInt *, const BigInt *);
-+ BigInt *and_bi(const BigInt *, const BigInt *);
++ BigInt *or_bi(const BigInt *, const BigInt *);
++ BigInt *xor_bi(const BigInt *, const BigInt *);
+
+아래의 함수들은 첫번째 인수가 가리키는 BigInt 구조체에 결과값을 저장하고 그 주소를 반환합니다.
++ BigInt *and_bi_with_assign(BigInt *, const BigInt *);
++ BigInt *or_bi_with_assign(BigInt *, const BigInt *);
++ BigInt *xor_bi_with_assign(BigInt *, const BigInt *);
 
 ```C
 BigInt *ten = new_bi(10), *eight = new_bi_with_str("8"), *res;
