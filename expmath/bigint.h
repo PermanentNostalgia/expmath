@@ -21,11 +21,11 @@ BigInt *copy_calctemp(void);
 
 // Mathmatic-Operation
 BigInt *sum_bi(const BigInt *, const BigInt *);
-retcode sum_bi_with_assign(BigInt *, const BigInt *);
+BigInt *sum_bi_with_assign(BigInt *, const BigInt *);
 BigInt *sub_bi(const BigInt *, const BigInt *);
-retcode sub_bi_with_assign(BigInt *, const BigInt *);
+BigInt *sub_bi_with_assign(BigInt *, const BigInt *);
 BigInt *mul_bi(const BigInt *, const BigInt *);
-retcode mul_bi_with_assign(BigInt *, const BigInt *);
+BigInt *mul_bi_with_assign(BigInt *, const BigInt *);
 BigInt *div_bi(const BigInt *, const BigInt *);
 BigInt *mod_bi(const BigInt *, const BigInt *);
 
@@ -67,8 +67,7 @@ void flush_bi_calctemp(void);
 void flush_bi_outputstrtemp(void);
 
 // Static Func(Operation)
-static BigInt *_operate(const BigInt *, const BigInt *, BigInt *(*)(const BigInt *, const BigInt *));
-static retcode _operate_with_assign(BigInt *, const BigInt *, BigInt *(*)(const BigInt *, const BigInt *));
+static BigInt *_operate(const BigInt *, const BigInt *, BigInt *(*)(const BigInt *, const BigInt *), BigInt *);
 
 static BigInt *_sum_bi(const BigInt *, const BigInt *);
 static BigInt *_sub_bi(const BigInt *, const BigInt *);
