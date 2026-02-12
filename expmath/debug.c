@@ -6,17 +6,12 @@
 
 int main(void) {
 	BigInt *a = new_bi(18), *b = new_bi(17), *res;
-	res = and_bi_with_assign(a, b);
+	res = sum_bi(a, b);
 
 	_print_bi_spac(res);
 
-	or_bi_with_assign(a, b);
+	mul_bi_with_assign(NULL, NULL);
 
 	_print_bi_spac(res);
-
-	xor_bi_with_assign(a, b);
-
-	_print_bi_spac(res);
-
 	return 0;
 }

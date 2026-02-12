@@ -177,27 +177,27 @@ BigInt *copy_calctemp(void) {
 }
 
 BigInt *sum_bi(const BigInt *x, const BigInt *y) {
-	return _operate(x, y, _sum_bi);
+	return _operate(x, y, _sum_bi, NULL);
 }
 
-retcode sum_bi_with_assign(BigInt *x, const BigInt *y) {
-	return _operate_with_assign(x, y, _sum_bi);
+BigInt *sum_bi_with_assign(BigInt *x, const BigInt *y) {
+	return _operate(x, y, _sum_bi, x);
 }
 
 BigInt *sub_bi(const BigInt *x, const BigInt *y) {
-	return _operate(x, y, _sub_bi);
+	return _operate(x, y, _sub_bi, NULL);
 }
 
-retcode sub_bi_with_assign(BigInt *x, const BigInt *y) {
-	return _operate_with_assign(x, y, _sub_bi);
+BigInt *sub_bi_with_assign(BigInt *x, const BigInt *y) {
+	return _operate(x, y, _sub_bi, x);
 }
 
 BigInt *mul_bi(const BigInt *x, const BigInt *y) {
-	return _operate(x, y, _mul_bi);
+	return _operate(x, y, _mul_bi, NULL);
 }
 
-retcode mul_bi_with_assign(BigInt *x, const BigInt *y) {
-	return _operate_with_assign(x, y, _mul_bi);
+BigInt *mul_bi_with_assign(BigInt *x, const BigInt *y) {
+	return _operate(x, y, _mul_bi, x);
 }
 
 retcode is_bigger_bi(const BigInt *base, const BigInt *counter) {
@@ -398,34 +398,29 @@ void flush_bi_outputstrtemp(void) {
 	}
 }
 
-static BigInt *_operate(const BigInt *x, const BigInt *y, BigInt *(*operator)(const BigInt *, const BigInt *)) {
+static BigInt *_operate(const BigInt *x, const BigInt *y, BigInt *(*operator)(const BigInt *, const BigInt *), BigInt *out) {
 	if(_set_oprand(&x, &y)==-1) return NULL;
+
+	if(out==NULL) {
+		if(CALC_TEMP==NULL) {
+			CALC_TEMP = (BigInt *)malloc(sizeof(BigInt));
+			if(CALC_TEMP==NULL) return NULL;
+			CALC_TEMP->mem = NULL;
+		}
+		out = CALC_TEMP;
+	}
 
 	BigInt *res = operator(x, y);
 	if(res==NULL) {
 		return NULL;
 	}
 
-	flush_bi_calctemp();
-	CALC_TEMP = res;
-
-	return CALC_TEMP;
-}
-
-static retcode _operate_with_assign(BigInt *x, const BigInt *y, BigInt *(*operator)(const BigInt *, const BigInt *)) {
-	if(_set_oprand(&x, &y)==-1) return -1;
-
-	BigInt *res = operator(x, y);
-	if(res==NULL) {
-		return -1;
-	}
-
-	free(x->mem);
-	x->mem = res->mem;
-	x->field = res->field;
+	if(out->mem!=NULL) free(out->mem);
+	out->mem = res->mem;
+	out->field = res->field;
 	free(res);
 
-	return 0;
+	return out;
 }
 
 static BigInt *_sum_bi(const BigInt *x, const BigInt *y) {
