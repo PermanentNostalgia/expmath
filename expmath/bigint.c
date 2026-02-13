@@ -580,7 +580,8 @@ static BigInt *_mul_bi(const BigInt *x, const BigInt *y) {
 
 	{
 		uint8_t plier_byte;
-		uint8_t carry, byte_temp;
+		uint8_t carry;
+		uint16_t byte_temp;
 		uint64_t i, j, k;
 		for(i=0; i<plier_byte_count; i++) {
 			if(plier->mem[i]==0) continue;
@@ -594,12 +595,10 @@ static BigInt *_mul_bi(const BigInt *x, const BigInt *y) {
 
 				carry = 0;
 				for(k=0; k<cand_byte_count; k++) {
-					n_mem[k+i] += (uint8_t)(cand->mem[k]<<j) + carry;
-					if(n_mem[k+i]<(uint8_t)(cand->mem[k]<<j) || n_mem[k+i]<carry) {
-						carry = 1;
-					} else {
-						carry = 0;
-					}
+					byte_temp = n_mem[k+i] + (uint8_t)(cand->mem[k]<<j) + carry;
+					carry = byte_temp / 256;
+
+					n_mem[k+i] = (uint8_t) byte_temp;
 					carry += (uint8_t)((cand->mem[k])>>(8-j));
 				}
 
