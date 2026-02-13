@@ -5,12 +5,9 @@
 #include "bigint.h"
 
 int main(void) {
-	BigInt *a = new_bi(18), *b = new_bi(17), *res;
-	res = sum_bi(a, b);
+	BigInt *a = new_bi(255), *b = new_bi(255), *res;
 
-	_print_bi_spac(res);
-
-	mul_bi_with_assign(NULL, NULL);
+	res = mul_bi(a, b);
 
 	_print_bi_spac(res);
 	return 0;
