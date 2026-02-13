@@ -517,9 +517,6 @@ static BigInt *_sub_bi(const BigInt *x, const BigInt *y) {
 }
 
 static BigInt *_mul_bi(const BigInt *x, const BigInt *y) {
-	if((x->field==1 && x->mem[0]==0) || (y->field==1 && y->mem[0]==0))
-		return new_bi(0);
-
 	uint8_t res_sign = 0;
 	BigInt *cp_x = NULL, *cp_y = NULL;
 	if(is_signed_bi(x)) {
@@ -544,73 +541,89 @@ static BigInt *_mul_bi(const BigInt *x, const BigInt *y) {
 
 		res_sign = (res_sign + 1) % 2;
 	}
-	
-	BigInt *res = new_bi(0);
+
+	BigInt *cand, *plier;
+	uint64_t cand_byte_count, plier_byte_count;
+	if(x->field>y->field) {
+		cand = x;
+		plier = y;
+	} else {
+		cand = y;
+		plier = x;
+	}
+
+	if(plier->mem[plier->field-1]==0) {
+		plier_byte_count = plier->field-1;
+	} else {
+		plier_byte_count = plier->field;
+	}
+
+	if(cand->mem[cand->field-1]==0) {
+		cand_byte_count = cand->field-1;
+	} else {
+		cand_byte_count = cand->field;
+	}
+
+	uint64_t n_field = cand_byte_count + plier_byte_count + 1;
+	if(n_field<cand_byte_count || n_field<plier_byte_count || n_field<1) {
+		free_bi(cp_x);
+		free_bi(cp_y);
+		return NULL;
+	}
+
+	uint8_t *n_mem = (uint8_t *)calloc(n_field, 1);
+	if(n_mem==NULL) {
+		free_bi(cp_x);
+		free_bi(cp_y);
+		return NULL;
+	}
+
+	{
+		uint8_t plier_byte;
+		uint8_t carry;
+		uint16_t byte_temp;
+		uint64_t i, j, k;
+		for(i=0; i<plier_byte_count; i++) {
+			if(plier->mem[i]==0) continue;
+
+			plier_byte = plier->mem[i];
+			for(j=0; j<8; j++) {
+				if(plier_byte%2==0) {
+					plier_byte>>=1;
+					continue;
+				}
+
+				carry = 0;
+				for(k=0; k<cand_byte_count; k++) {
+					byte_temp = n_mem[k+i] + (uint8_t)(cand->mem[k]<<j) + carry;
+					carry = byte_temp / 256;
+
+					n_mem[k+i] = (uint8_t) byte_temp;
+					carry += (uint8_t)((cand->mem[k])>>(8-j));
+				}
+
+				if(carry!=0) {
+					n_mem[k+i] += carry;
+				}
+
+				plier_byte>>=1;
+			}
+		}
+	}
+
+	free_bi(cp_x);
+	free_bi(cp_y);
+
+	BigInt *res = (BigInt *)malloc(sizeof(BigInt));
 	if(res==NULL) {
+		free(n_mem);
 		return NULL;
 	}
 
-	BigInt *pv = (BigInt *)malloc(sizeof(BigInt));
-	if(pv==NULL) {
-		free_bi(res);
-		return NULL;
-	}
-	pv->mem = NULL;
-	pv->field = 0;
+	res->mem = n_mem;
+	res->field = n_field;
 
-	retcode sum_res;
-	uint8_t coef, carry_coef;
-	uint64_t i, j, exp, pv_field;
-	for(i=0; i<x->field; i++) {
-		carry_coef = 0;
-		for(j=0; j<y->field; j++) {
-			exp = i + j;
-			coef = (x->mem[i] * y->mem[j] + carry_coef) % 256;
-			carry_coef = (x->mem[i] * y->mem[j] + carry_coef) / 256;
-
-			pv_field = (coef<128) ? exp + 1 : exp + 2;
-			pv->mem = (uint8_t *)calloc(pv_field, 1);
-			if(pv->mem==NULL) {
-				free_bi(res);
-				free(pv);
-				return NULL;
-			}
-
-			pv->mem[exp] = coef;
-			pv->field = pv_field;
-
-			sum_res = sum_bi_with_assign(res, pv);
-
-			free(pv->mem);
-			if(sum_res==-1) {
-				free_bi(res);
-				free(pv);
-				return NULL;
-			}
-		}
-		if(carry_coef!=0) {
-			exp++;
-			pv_field = (carry_coef<128) ? exp + 1 : exp + 2;
-			pv->mem = (uint8_t *)calloc(pv_field, 1);
-			if(pv->mem==NULL) {
-				free_bi(res);
-				free(pv);
-				return NULL;
-			}
-
-			pv->mem[exp] = carry_coef;
-			pv->field = pv_field;
-
-			sum_res = sum_bi_with_assign(res, pv);
-
-			free(pv->mem);
-			if(sum_res==-1) {
-				free_bi(res);
-				free(pv);
-				return NULL;
-			}
-		}
-	}
+	_optimize_bytes(res);
 
 	if(res_sign) convert_sign_bi(res);
 
