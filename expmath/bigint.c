@@ -661,19 +661,73 @@ static BigInt *_div_bi(const BigInt *x, const BigInt *y) {
 		return new_bi(0);
 	}
 
-	uint64_t x_byte_count, y_byte_count;
+	uint64_t dived_field, divin_field;
 	if(x->mem[x->field-1]==0)
-		x_byte_count = x->field-1;
+		dived_field = x->field-1;
 	else
-		x_byte_count = x->field;
+		dived_field = x->field;
 
 	if(y->mem[y->field-1]==0)
-		y_byte_count = y->field-1;
+		divin_field = y->field-1;
 	else
-		y_byte_count = y->field;
+		divin_field = y->field;
 
-	uint64_t quotient_index = x_byte_count - y_byte_count;
+	uint8_t *dived_mem = (uint8_t *)malloc(dived_field);
+	if(dived_mem==NULL) {
+		free_bi(cp_x);
+		free_bi(cp_y);
+		return NULL;
+	}
+	memcpy(dived_mem, x->mem, dived_field);
 
+	uint8_t *divin_mem = (uint8_t *)malloc(divin_field);
+	if(divin_mem==NULL) {
+		free_bi(cp_x);
+		free_bi(cp_y);
+		free(dived_mem);
+	}
+
+	uint64_t quot_field = dived_field - divin_field + 1;
+	uint8_t *quot_mem = (uint8_t *)calloc(quot_field, 1);
+	if(quot_mem==NULL) {
+		free_bi(cp_x);
+		free_bi(cp_y);
+		free(dived_mem);
+		free(divin_mem);
+		return NULL;
+	}
+
+	uint64_t i = quot_field - 1, j;
+	uint8_t byte_quot = 0, *temp_mem, temp, overflowed;
+	do {
+		overflowed = 0;
+		for(j=0; j<divin_field; j++) {
+			temp = dived_mem[i+j] - divin_mem[j];
+			if(dived_mem[i+j]<divin_mem[j] || temp<overflowed))
+				overflowed = 1;
+			else
+				overflowed = 0;
+			temp -= overflowed;
+			dived_mem[i+j] = temp;
+		}
+
+		if(overflowed) {
+			overflowed = 0;
+			for(j=0; j<divin_field; j++) {
+				temp = dived_mem[i+j] + divin_mem[j] + overflowed;
+				if(temp<dived_mem[i+j] || temp<divin_mem[j] || temp<overflowed)
+					overflowed = 1;
+				else
+					overflowed = 0;
+
+				dived_mem[i+j] = temp;
+			}
+
+			if(divin_mem[0]%2) {
+				temp_mem = (uint8_t *)realloc();
+			}
+		}
+	} while(i!=0);
 }
 
 /*
@@ -893,6 +947,22 @@ static retcode _optimize_bytes(BigInt *bi) {
 
 		bi->mem = n_mem;
 		bi->field = dest_i;
+	}
+
+	return 0;
+}
+
+/*
+	When two same size bytes array which don't end with zero means positive integers, 
+	and need to be compared, use this func.
+*/
+static retcode _compare_bytes(uint8_t *x_mem, uint8_t *y_mem, uint64_t field) {
+	uint64_t i;
+	for(i=0; i<field; i++) {
+		if(x_mem[field-i-1]>y_mem[field-i-1])
+			return 1;
+		else if(x_mem[field-i-1]<y_mem[field-i-1])
+			return 2;
 	}
 
 	return 0;

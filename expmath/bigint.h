@@ -87,6 +87,7 @@ static retcode _reset_calctemp(void);
 static retcode _set_oprand(BigInt **, BigInt **);
 static retcode _padding_bytes(uint8_t **, uint64_t, uint64_t);
 static retcode _optimize_bytes(BigInt *);
+static retcode _compare_bytes(uint8_t *, uint8_t *, uint64_t);
 
 // ONLY FOR DEBUG
 void _print_bi_spac(const BigInt *);
