@@ -27,7 +27,9 @@ BigInt *sub_bi_with_assign(BigInt *, const BigInt *);
 BigInt *mul_bi(const BigInt *, const BigInt *);
 BigInt *mul_bi_with_assign(BigInt *, const BigInt *);
 BigInt *div_bi(const BigInt *, const BigInt *);
+BigInt *div_bi_with_assign(BigInt *, const BigInt *);
 BigInt *mod_bi(const BigInt *, const BigInt *);
+BigInt *mod_bi_with_assign(BigInt *, const BigInt *);
 
 retcode convert_sign_bi(BigInt *);
 

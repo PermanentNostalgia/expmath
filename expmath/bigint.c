@@ -630,6 +630,52 @@ static BigInt *_mul_bi(const BigInt *x, const BigInt *y) {
 	return res;
 }
 
+static BigInt *_div_bi(const BigInt *x, const BigInt *y) {
+	uint8_t quotient_sign;
+	uint8_t x_sign = is_signed_bi(x), y_sign = is_signed_bi(y);
+	BigInt *cp_x = NULL , *cp_y = NULL;
+
+	if(x_sign) {
+		cp_x = copy_bi(x);
+		if(cp_x==NULL) return NULL;
+
+		convert_sign_bi(cp_x);
+		x = cp_x;
+	}
+
+	if(y_sign) {
+		cp_y = copy_bi(y);
+		if(cp_y==NULL) {
+			free_bi(cp_x);
+			return NULL;
+		}
+
+		convert_sign_bi(cp_y);
+		y = cp_y;
+	}
+
+	quotient_sign = x_sign ^ y_sign;
+	if(is_smaller_bi(x, y)) {
+		free_bi(cp_x);
+		free_bi(cp_y);
+		return new_bi(0);
+	}
+
+	uint64_t x_byte_count, y_byte_count;
+	if(x->mem[x->field-1]==0)
+		x_byte_count = x->field-1;
+	else
+		x_byte_count = x->field;
+
+	if(y->mem[y->field-1]==0)
+		y_byte_count = y->field-1;
+	else
+		y_byte_count = y->field;
+
+	uint64_t quotient_index = x_byte_count - y_byte_count;
+
+}
+
 /*
 	What return value means
 	-1: error
