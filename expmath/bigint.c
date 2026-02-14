@@ -697,37 +697,13 @@ static BigInt *_div_bi(const BigInt *x, const BigInt *y) {
 		return NULL;
 	}
 
-	uint64_t i = quot_field - 1, j;
-	uint8_t byte_quot = 0, *temp_mem, temp, overflowed;
+	uint64_t i = quot_field-1, j;
+	uint8_t *temp_mem, temp, carry, shift_count=0;
+
 	do {
-		overflowed = 0;
-		for(j=0; j<divin_field; j++) {
-			temp = dived_mem[i+j] - divin_mem[j];
-			if(dived_mem[i+j]<divin_mem[j] || temp<overflowed))
-				overflowed = 1;
-			else
-				overflowed = 0;
-			temp -= overflowed;
-			dived_mem[i+j] = temp;
-		}
-
-		if(overflowed) {
-			overflowed = 0;
-			for(j=0; j<divin_field; j++) {
-				temp = dived_mem[i+j] + divin_mem[j] + overflowed;
-				if(temp<dived_mem[i+j] || temp<divin_mem[j] || temp<overflowed)
-					overflowed = 1;
-				else
-					overflowed = 0;
-
-				dived_mem[i+j] = temp;
-			}
-
-			if(divin_mem[0]%2) {
-				temp_mem = (uint8_t *)realloc();
-			}
-		}
+		
 	} while(i!=0);
+
 }
 
 /*
@@ -952,20 +928,72 @@ static retcode _optimize_bytes(BigInt *bi) {
 	return 0;
 }
 
-/*
-	When two same size bytes array which don't end with zero means positive integers, 
-	and need to be compared, use this func.
-*/
-static retcode _compare_bytes(uint8_t *x_mem, uint8_t *y_mem, uint64_t field) {
+static retcode _sub_bytes(uint8_t *x_mem, uint8_t *y_mem, uint64_t field) {
 	uint64_t i;
+	uint8_t carry = 0, carry_temp, temp;
 	for(i=0; i<field; i++) {
-		if(x_mem[field-i-1]>y_mem[field-i-1])
-			return 1;
-		else if(x_mem[field-i-1]<y_mem[field-i-1])
-			return 2;
+		temp = x_mem[i] - y_mem[i];
+		if(x_mem[i]<y_mem[i] || temp<carry)
+			carry_temp = 1;
+		else
+			carry_temp = 0;
+
+		temp -= carry;
+		x_mem[i] = temp;
+
+		carry = carry_temp;
 	}
 
+	return carry;
+}
+
+static retcode _sum_bytes(uint8_t *x_mem, uint8_t *y_mem, uint64_t field) {
+	uint64_t i;
+	uint8_t temp, carry = 0;
+	for(i=0; i<field; i++) {
+		temp = x_mem[i] + y_mem[i] + carry;
+		if(temp<x_mem[i] || temp<y_mem[i] || temp<carry)
+			carry = 1;
+		else
+			carry = 0;
+
+		x_mem[i] = temp;
+	}
+
+	return carry;
+}
+
+static retcode _lsh_bits(uint8_t *mem, uint64_t field, uint64_t shift) {
+	if(shift/8>=field) {
+		memset(mem, 0, field);
+		return 0;
+	}
+
+	uint64_t byte_count = shift/8, i, j;
+	uint8_t bit_count = shift%8, carry;
+	uint8_t *temp = (uint8_t *)malloc(byte_count);
+	if(temp==NULL) return -1;
+
+	for(i=0; i<field/byte_count-1; i++) {
+		memcpy(temp, mem+((i+1)*byte_count), byte_count);
+		for(j=0; j<byte_count; j++) {
+			mem[(i+1)*byte_count+j] = mem[i*byte_count+j]<<bit_count + carry;
+			carry = mem[i*byte_count+j]>>8-bit_count;
+		}
+	}
+
+	free(temp);
+
 	return 0;
+}
+
+static retcode _rsh_bits(uint8_t *mem, uint64_t field, uint64_t shift) {
+	if(shift>=UINT64_MAX/8) {
+		memset(mem, 0, field);
+		return 0;
+	}
+
+
 }
 
 void _print_bi_spac(const BigInt *bi) {
